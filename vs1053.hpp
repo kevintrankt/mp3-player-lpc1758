@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SCI_MODE  0x00
+#define SCI_MODE 0x00
 #define SCI_STATUS 0x01
 #define SCI_BASS 0x02
 #define SCI_CLOCKF 0x03
@@ -27,21 +27,19 @@
 class VS1053
 {
 private:
-  LabGPIO_0 *_cs; // VS1053 Chip Select
-  LabGPIO_0 *_dreq; // VS1053 DREQ Signal
-  LabGPIO_0 *_rst; // VS1053 Reset
-  LabGPIO_0 *_xdcs; // VS1053 D Chip Select
-  bool playing; // bool to check if the decoder is playing or not
-  uint8_t volume; // current volume of the VS1053
-  int number_songs; // number of songs retrieved from micro-sd card
-  char *songs[100]; // array of song titles
-  int song_playing; // index of song playing
-  int max_songs; // maximum number of songs for index
+  LabGPIO_0 *_cs;      // VS1053 Chip Select
+  LabGPIO_0 *_dreq;    // VS1053 DREQ Signal
+  LabGPIO_0 *_rst;     // VS1053 Reset
+  LabGPIO_0 *_xdcs;    // VS1053 D Chip Select
+  bool playing;        // bool to check if the decoder is playing or not
+  uint8_t volume;      // current volume of the VS1053
+  int number_songs;    // number of songs retrieved from micro-sd card
+  char *songs[100];    // array of song titles
+  int song_playing;    // index of song playing
+  int max_songs;       // maximum number of songs for index
   bool next_song_flag; // flag to detect if skipSongISR is triggered
   bool prev_song_flag; // flag to detect if prevSongISR is triggered
   bool shuffle;
-
-
 
 public:
   bool init(LabGPIO_0 *cs, LabGPIO_0 *dreq, LabGPIO_0 *rst, LabGPIO_0 *xdcs);
@@ -256,7 +254,7 @@ public:
   |--------------------------------------------------------------------------|
   | Set prev_song_flag and next_song_flag as false                           |
   |-------------------------------------------------------------------------*/
-  char * getCurrentSongName();
+  char *getCurrentSongName();
   /*-------------------------------------------------------------------------|
   | -- getCurrentSongName()                                                  |
   |--------------------------------------------------------------------------|
@@ -281,6 +279,6 @@ public:
   |    {boo} - shuffle flag                                                  |
   |-------------------------------------------------------------------------*/
   VS1053();
-  };
+};
 
 #endif

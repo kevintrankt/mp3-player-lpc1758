@@ -13,10 +13,10 @@
 #include "semphr.h"
 
 SemaphoreHandle_t spi_bus_lock; // Semaphore to protect SPI transfer
-VS1053 mp3; // VS1053 Driver
-lcdDriver lcd; // Parralax 16x2 Driver
+VS1053 mp3;                     // VS1053 Driver
+lcdDriver lcd;                  // Parralax 16x2 Driver
 int elapsed;
-char * song_title;
+char *song_title;
 SoftTimer debouncer(200);
 
 void pauseToggleISR()
@@ -26,15 +26,19 @@ void pauseToggleISR()
 | When interrupt on P0.1 is detected, this ISR pauses or resumes playback  |
 |-------------------------------------------------------------------------*/
 {
-  if(mp3.isPlaying()){
+  if (mp3.isPlaying())
+  {
     mp3.pause();
-  } else {
+  }
+  else
+  {
     mp3.play();
   }
 }
 
-void skipSongISR(){
-/*-------------------------------------------------------------------------|
+void skipSongISR()
+{
+  /*-------------------------------------------------------------------------|
 | -- skipSongISR()                                                         |
 |--------------------------------------------------------------------------|
 | When interrupt on P2.4 is detected, this ISR skips to the next song      |
@@ -51,7 +55,7 @@ void skipSongISR(){
 //   mp3.prevSong();
 // }
 
-void prevSongISR(void * pvParameters)
+void prevSongISR(void *pvParameters)
 /*-------------------------------------------------------------------------|
 | -- prevSongISR()                                                         |
 |--------------------------------------------------------------------------|
@@ -60,20 +64,23 @@ void prevSongISR(void * pvParameters)
 {
   LabGPIO_0 prev(2, 2);
   prev.setAsInput();
-  while(1){
-    if(debouncer.expired())
+  while (1)
+  {
+    if (debouncer.expired())
     {
-      if(prev.getLevel()){
+      if (prev.getLevel())
+      {
         mp3.prevSong();
         debouncer.reset();
       }
     }
-  vTaskDelay(100);
+    vTaskDelay(100);
   }
 }
 
-void shuffleISR(void * pvParameters){
-/*-------------------------------------------------------------------------|
+void shuffleISR(void *pvParameters)
+{
+  /*-------------------------------------------------------------------------|
 | -- shuffleISR()                                                          |
 |--------------------------------------------------------------------------|
 | When interrupt on P2.6 is detected, this ISR toggles shuffle mode        |
@@ -81,19 +88,21 @@ void shuffleISR(void * pvParameters){
   mp3.toggleShuffle();
   LabGPIO_0 shuf(2, 6);
   shuf.setAsInput();
-  while(1){
-    if(debouncer.expired())
+  while (1)
+  {
+    if (debouncer.expired())
     {
-      if(shuf.getLevel()){
+      if (shuf.getLevel())
+      {
         mp3.toggleShuffle();
         debouncer.reset();
       }
     }
-  vTaskDelay(100);
+    vTaskDelay(100);
   }
 }
 
-void setVolume(void * pvParameters)
+void setVolume(void *pvParameters)
 /*-------------------------------------------------------------------------|
 | -- setVolume(void * pvParameters)                                        |
 |--------------------------------------------------------------------------|
@@ -105,20 +114,21 @@ void setVolume(void * pvParameters)
 |    {void *} pvParameters - Parameters passed to task                     |
 |-------------------------------------------------------------------------*/
 {
-  while(1)
+  while (1)
   {
-    if(xSemaphoreTake(spi_bus_lock, portMAX_DELAY)) {
+    if (xSemaphoreTake(spi_bus_lock, portMAX_DELAY))
+    {
       uint16_t reading = 0;
       reading = adc0_get_reading(5);
       uint8_t volume = reading * 254.0 / 4095;
-      mp3.setVolume(volume,volume);
+      mp3.setVolume(volume, volume);
       xSemaphoreGive(spi_bus_lock);
     }
     vTaskDelay(500);
   }
 }
 
-void playSong(void * pvParameters)
+void playSong(void *pvParameters)
 /*-------------------------------------------------------------------------|
 | -- playSong(void * pvParameters)                                         |
 |--------------------------------------------------------------------------|
@@ -136,14 +146,14 @@ void playSong(void * pvParameters)
 |    {void *} pvParameters - Parameters passed to task                     |
 |-------------------------------------------------------------------------*/
 {
-  while(1)
+  while (1)
   {
     FIL file;
     char title[100];
     song_title = mp3.getCurrentSongName();
     strcpy(title, "1:");
     strcat(title, mp3.getCurrentSongName());
-    f_open(&file,title,FA_OPEN_EXISTING|FA_READ);
+    f_open(&file, title, FA_OPEN_EXISTING | FA_READ);
     int buffer_size = 24;
     int buffer_ofs = 0;
     unsigned char buffer[buffer_size] = {};
@@ -151,31 +161,39 @@ void playSong(void * pvParameters)
     unsigned int file_size = f_size(&file);
     unsigned int bytes_read;
 
-    while(buffer_ofs < file_size && !mp3.getNextSongFlag() && !mp3.getPrevSongFlag()){
-      if(xSemaphoreTake(spi_bus_lock, portMAX_DELAY)) {
-        if (mp3.isPlaying()){
+    while (buffer_ofs < file_size && !mp3.getNextSongFlag() && !mp3.getPrevSongFlag())
+    {
+      if (xSemaphoreTake(spi_bus_lock, portMAX_DELAY))
+      {
+        if (mp3.isPlaying())
+        {
           int buffer_pos = 0;
           unsigned char *p;
-          f_read(&file, buffer, buffer_size ,&bytes_read);
-            p = buffer;
-            while (buffer_pos < buffer_size) {
-              while(!mp3.readyForData());
-              mp3.setXDCSLow();
-              ssp0_exchange_byte(*p++);
-              buffer_pos++;
-            }
+          f_read(&file, buffer, buffer_size, &bytes_read);
+          p = buffer;
+          while (buffer_pos < buffer_size)
+          {
+            while (!mp3.readyForData())
+              ;
+            mp3.setXDCSLow();
+            ssp0_exchange_byte(*p++);
+            buffer_pos++;
+          }
           mp3.setXDCSHigh();
           buffer_ofs += buffer_size;
         }
-        elapsed = ((float)buffer_ofs/file_size)*100;
+        elapsed = ((float)buffer_ofs / file_size) * 100;
         xSemaphoreGive(spi_bus_lock);
       }
       vTaskDelay(1);
     }
     f_close(&file);
-    if(mp3.getPrevSongFlag()){
+    if (mp3.getPrevSongFlag())
+    {
       mp3.decSong();
-    } else {
+    }
+    else
+    {
       mp3.nextSong();
     }
     mp3.clearNextPrevFlags();
@@ -185,7 +203,7 @@ void playSong(void * pvParameters)
 
 void displayName(void *pvParameters)
 {
-/*-------------------------------------------------------------------------|
+  /*-------------------------------------------------------------------------|
 | -- displayName(void * pvParameters)                                      |
 |--------------------------------------------------------------------------|
 | This task displays the filename. If the file name is too long, scrolling |
@@ -196,57 +214,61 @@ void displayName(void *pvParameters)
 |-------------------------------------------------------------------------*/
   lcd.clear();
 
-  while(1)
+  while (1)
   {
     int reference = 0;
     int end = 16;
-    lcd.setCursor(0,0);
-    char* entireT = song_title;
-    if(strnlen(entireT, 100) > 15)
+    lcd.setCursor(0, 0);
+    char *entireT = song_title;
+    if (strnlen(entireT, 100) > 15)
+    {
+      while (entireT == song_title)
       {
-        while(entireT == song_title)
+        char *subT;
+        lcd.setCursor(0, 0);
+        subT = strndup(entireT + reference, end);    //substring of first 16 char of entire title
+        for (int i = 0; i < strnlen(subT, 100); i++) //strnlen for thread safety
         {
-          char *subT;
-          lcd.setCursor(0,0);
-          subT=strndup(entireT+reference, end); //substring of first 16 char of entire title
-            for(int i = 0; i < strnlen(subT, 100); i++) //strnlen for thread safety
-            {
-              if(i>15){
-                break;
-              }
-              lcd.write(subT[i]);
-            }
-            lcd.displayTimeElapsed(elapsed);
-            if(mp3.getShuffle()){
-              lcd.setCursor(1,0);
-              lcd.write({'S'});
-            }
-            vTaskDelay(2000); //2 seconds for readability
-            lcd.clear();
-            if (end > strnlen(entireT, 100)) //if end > length of substring -> exit
-            {
-             break;
-            }
-            reference += 16; //next 16 letters
-            end +=16;
-        }
-      }
-      else
-      {
-        while(entireT == song_title){
-          for(int i = 0; i < strnlen(song_title, 100); i++)
+          if (i > 15)
           {
-              lcd.write(entireT[i]);
+            break;
           }
-          lcd.displayTimeElapsed(elapsed);
-          if(mp3.getShuffle()){
-            lcd.setCursor(1,0);
-            lcd.write({'S'});
-          }
-          vTaskDelay(2000); //2 seconds for readability
-          lcd.clear();
+          lcd.write(subT[i]);
         }
+        lcd.displayTimeElapsed(elapsed);
+        if (mp3.getShuffle())
+        {
+          lcd.setCursor(1, 0);
+          lcd.write({'S'});
+        }
+        vTaskDelay(2000); //2 seconds for readability
+        lcd.clear();
+        if (end > strnlen(entireT, 100)) //if end > length of substring -> exit
+        {
+          break;
+        }
+        reference += 16; //next 16 letters
+        end += 16;
       }
+    }
+    else
+    {
+      while (entireT == song_title)
+      {
+        for (int i = 0; i < strnlen(song_title, 100); i++)
+        {
+          lcd.write(entireT[i]);
+        }
+        lcd.displayTimeElapsed(elapsed);
+        if (mp3.getShuffle())
+        {
+          lcd.setCursor(1, 0);
+          lcd.write({'S'});
+        }
+        vTaskDelay(2000); //2 seconds for readability
+        lcd.clear();
+      }
+    }
     vTaskDelay(100);
   }
 }
@@ -268,29 +290,28 @@ int main(void)
   mp3.sineTest();
 
   // PINSEL for ADC5 (Used for Volume Control)
-  LPC_PINCON->PINSEL3 |= (0x3<<30) ; //ADC5
+  LPC_PINCON->PINSEL3 |= (0x3 << 30); //ADC5
 
   // Interrupt for Play/Pause/Skip/Previous
-  LabGPIOInterrupts* x = LabGPIOInterrupts::getInstance();
+  LabGPIOInterrupts *x = LabGPIOInterrupts::getInstance();
   x->init();
   bool attach;
   InterruptCondition_E int1 = rising;
-  attach = x->attachInterruptHandler(0,1,&pauseToggleISR,int1);
-  attach = x->attachInterruptHandler(2,0,&skipSongISR,int1);
+  attach = x->attachInterruptHandler(0, 1, &pauseToggleISR, int1);
+  attach = x->attachInterruptHandler(2, 0, &skipSongISR, int1);
   // attach = x->attachInterruptHandler(2,2,&prevSongISR,int1);
   // attach = x->attachInterruptHandler(2,6,&shuffleISR,int1);
 
-
   FIL file;
-  f_open(&file,"1:song.mp3",FA_OPEN_EXISTING|FA_READ);
+  f_open(&file, "1:song.mp3", FA_OPEN_EXISTING | FA_READ);
 
   // Create tasks for scheduler
   scheduler_add_task(new terminalTask(PRIORITY_HIGH));
-  xTaskCreate(prevSongISR, "Prev Song", 1024, ( void * ) 1, 2, NULL );
-  xTaskCreate(shuffleISR, "Shuff Song", 1024, ( void * ) 1, 2, NULL );
-  xTaskCreate(playSong, "Play Song", 1024, ( void * ) 1, 3, NULL );
-  xTaskCreate(setVolume, "Volume", 1024, ( void * ) 1, 1, NULL );
-  xTaskCreate(displayName, "Display Name", 1024, (void *) 1, 1, NULL);
+  xTaskCreate(prevSongISR, "Prev Song", 1024, (void *)1, 2, NULL);
+  xTaskCreate(shuffleISR, "Shuff Song", 1024, (void *)1, 2, NULL);
+  xTaskCreate(playSong, "Play Song", 1024, (void *)1, 3, NULL);
+  xTaskCreate(setVolume, "Volume", 1024, (void *)1, 1, NULL);
+  xTaskCreate(displayName, "Display Name", 1024, (void *)1, 1, NULL);
 
   scheduler_start();
 

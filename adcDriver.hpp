@@ -5,10 +5,10 @@
 #include "io.hpp"
 enum ADC_PIN
 {
-    ADC_PIN_0_25,       // AD0.2 <-- Light Sensor -->
-    ADC_PIN_0_26,       // AD0.3
-    ADC_PIN_1_30,       // AD0.4
-    ADC_PIN_1_31,       // AD0.5
+    ADC_PIN_0_25, // AD0.2 <-- Light Sensor -->
+    ADC_PIN_0_26, // AD0.3
+    ADC_PIN_1_30, // AD0.4
+    ADC_PIN_1_31, // AD0.5
 
     /* These ADC channels are compromised on the SJ-One, hence you do not need to support them
     ADC_PIN_0_23 = 0,   // AD0.0
@@ -20,9 +20,7 @@ enum ADC_PIN
 
 class ADCDriver
 {
-public:
-
-
+  public:
     // Nothing needs to be done within the default constructor
     ADCDriver();
 

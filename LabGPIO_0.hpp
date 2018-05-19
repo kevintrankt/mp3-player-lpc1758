@@ -7,31 +7,32 @@
 
 class LabGPIO_0
 {
-private:
+  private:
     /**
      * port, pin and any other variables should be placed here.
      * NOTE: that the state of the pin should not be recorded here. The true
      *      source of that information is embedded in the hardware registers
      */
-     uint8_t port_num;
-     uint8_t pin_num;
-     LPC_GPIO_TypeDef* LPC_GPIO;
-public:
+    uint8_t port_num;
+    uint8_t pin_num;
+    LPC_GPIO_TypeDef *LPC_GPIO;
+
+  public:
     /**
      * You should not modify any hardware registers at this point
      * You should store the port and pin using the constructor.
      *
      * @param {uint8_t} pin  - pin number between 0 and 32
      */
-	LabGPIO_0(uint8_t port, uint8_t pin);
+    LabGPIO_0(uint8_t port, uint8_t pin);
     /**
      * Should alter the hardware registers to set the pin as an input
      */
-	void setAsInput();
+    void setAsInput();
     /**
      * Should alter the hardware registers to set the pin as an input
      */
-	void setAsOutput();
+    void setAsOutput();
     /**
      * Should alter the set the direction output or input depending on the input.
      *
@@ -57,8 +58,8 @@ public:
      *
      * @return {bool} level of pin high => true, low => false
      */
-	bool getLevel();
-	~LabGPIO_0();
+    bool getLevel();
+    ~LabGPIO_0();
 };
 
 #endif

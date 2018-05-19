@@ -11,19 +11,17 @@
 #include "FreeRTOS.h"
 enum PWM_PIN
 {
-    PWM_PIN_2_0,    // PWM1.1
-    PWM_PIN_2_1,    // PWM1.2
-    PWM_PIN_2_2,    // PWM1.3
-    PWM_PIN_2_3,    // PWM1.4
-    PWM_PIN_2_4,    // PWM1.5
-    PWM_PIN_2_5,    // PWM1.6
+    PWM_PIN_2_0, // PWM1.1
+    PWM_PIN_2_1, // PWM1.2
+    PWM_PIN_2_2, // PWM1.3
+    PWM_PIN_2_3, // PWM1.4
+    PWM_PIN_2_4, // PWM1.5
+    PWM_PIN_2_5, // PWM1.6
 };
 uint32_t pwmcl = 1000;
 class PWMDriver
 {
-public:
-
-
+  public:
     /// Nothing needs to be done within the default constructor
     PWMDriver() {}
 
@@ -32,7 +30,7 @@ public:
     */
     void pwmSelectAllPins();
 
-	/**
+    /**
     * 1) Select PWM functionality of pwm_pin_arg
     *
     * @param pwm_pin_arg is the PWM_PIN enumeration of the desired pin.
@@ -49,23 +47,23 @@ public:
     */
     void pwmInitSingleEdgeMode(uint32_t frequency_Hz);
 
-	/**
+    /**
     * 1) Convert duty_cycle_percentage to the appropriate match register value (depends on current frequency)
     * 2) Assign the above value to the appropriate MRn register (depends on pwm_pin_arg)
     *
     * @param pwm_pin_arg is the PWM_PIN enumeration of the desired pin.
     * @param duty_cycle_percentage is the desired duty cycle percentage.
     */
-	void setDutyCycle(PWM_PIN pwm_pin_arg, float duty_cycle_percentage);
+    void setDutyCycle(PWM_PIN pwm_pin_arg, float duty_cycle_percentage);
 
-	/**
+    /**
     * Optional:
     * 1) Convert frequency_Hz to the appropriate match register value
     * 2) Assign the above value to MR0
     *
     * @param frequency_hz is the desired frequency of all pwm pins
     */
-	void setFrequency(uint32_t frequency_Hz);
+    void setFrequency(uint32_t frequency_Hz);
 };
 
 #endif

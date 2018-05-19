@@ -13,17 +13,16 @@ enum FrameModes
 
 enum Peripheral
 {
-    SSP0 = 0,
-    SSP1 = 1
+  SSP0 = 0,
+  SSP1 = 1
 };
 static Peripheral sspx;
 class LabSPI
 {
 private:
   // SSP register lookup table structure
-  static LPC_SSP_TypeDef * SSP[];
+  static LPC_SSP_TypeDef *SSP[];
   // static const LPC_SSP_TypeDef * SSP[] = {LPC_SSP0, LPC_SSP1};
-
 
 public:
   /**
